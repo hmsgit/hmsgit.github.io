@@ -15,9 +15,19 @@ nothing gets published.
 
 | Trigger | When |
 | --- | --- |
+| `./deploy` | from this repo — triggers and follows the run |
 | `workflow_dispatch` | manually, from the Actions tab |
 | `push` | a commit lands on `master` here |
 | `repository_dispatch` | immediately, if singularity signals (below) |
+
+## Deploying
+
+```sh
+./deploy            # trigger, then watch until it lands
+./deploy --no-wait  # trigger and get out
+```
+
+Reads `GITHUB_API_TOKEN` from the environment.
 
 ## Deploying as soon as singularity changes
 
