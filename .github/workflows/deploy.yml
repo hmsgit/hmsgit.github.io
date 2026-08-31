@@ -29,6 +29,8 @@ jobs:
         with:
           repository: hmsgit/singularity
           ref: master
+          # read-only deploy key: this workflow can read the source, nothing else
+          ssh-key: ${{ secrets.SOURCE_SSH_KEY }}
 
       - uses: actions/setup-node@v4
         with:

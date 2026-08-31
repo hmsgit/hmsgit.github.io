@@ -46,6 +46,10 @@ jobs:
             -d '{"event_type":"source-updated"}'
 ```
 
-If singularity is a **private** repository, the checkout step in
-`deploy.yml` also needs a token with read access to it — add `token: ${{
-secrets.SOURCE_TOKEN }}` under the checkout's `with:`.
+## How it reads the private source
+
+singularity is private, so the checkout uses a **read-only deploy key**: the
+public half is registered on singularity, the private half lives here as the
+`SOURCE_SSH_KEY` secret. That key can read that one repository and do nothing
+else. To rotate it, generate a new ed25519 pair, replace the deploy key on
+singularity, and update the secret here.
