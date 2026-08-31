@@ -9,9 +9,6 @@ on:
     types: [source-updated]
   # deploy by hand from the Actions tab
   workflow_dispatch:
-  # safety net: rebuild daily even if no signal arrives
-  schedule:
-    - cron: '0 4 * * *'
 
 permissions:
   contents: read

@@ -17,13 +17,12 @@ nothing gets published.
 | --- | --- |
 | `workflow_dispatch` | manually, from the Actions tab |
 | `push` | a commit lands on `master` here |
-| `schedule` | daily at 04:00 UTC, so source changes go live within a day |
 | `repository_dispatch` | immediately, if singularity signals (below) |
 
 ## Deploying as soon as singularity changes
 
-The daily rebuild is the no-setup default. For instant deploys, give singularity a
-way to poke this repo:
+Deploys are manual by default — no scheduled runs, no wasted Actions minutes. For
+push-to-live instead, give singularity a way to poke this repo:
 
 1. Create a fine-grained personal access token with **Contents: read & write** on
    `hmsgit/hmsgit.github.io`.
