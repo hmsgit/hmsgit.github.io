@@ -27,8 +27,8 @@ api() {
     -H "X-GitHub-Api-Version: 2022-11-28" "$@"
 }
 
-# the newest run id right now, so we can tell ours apart from it
-previous=$(api "https://api.github.com/repos/$REPO/actions/workflows/$WORKFLOW/runs?per_page=1" |
+# newest manually-triggered run right now, so we can tell ours apart from it
+previous=$(api "https://api.github.com/repos/$REPO/actions/workflows/$WORKFLOW/runs?event=workflow_dispatch&per_page=1" |
   python3 -c "import json,sys; r=json.load(sys.stdin)['workflow_runs']; print(r[0]['id'] if r else 0)")
 
 code=$(api -o /dev/null -w '%{http_code}' -X POST \
