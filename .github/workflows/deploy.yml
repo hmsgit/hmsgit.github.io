@@ -1,0 +1,56 @@
+name: Build and deploy singularity
+
+on:
+  # someone pushed to this repo
+  push:
+    branches: [master]
+  # singularity signalled a new commit (see README)
+  repository_dispatch:
+    types: [source-updated]
+  # deploy by hand from the Actions tab
+  workflow_dispatch:
+  # safety net: rebuild daily even if no signal arrives
+  schedule:
+    - cron: '0 4 * * *'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# let a running deploy finish; queue at most one more
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the site source
+        uses: actions/checkout@v4
+        with:
+          repository: hmsgit/singularity
+          ref: master
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

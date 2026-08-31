@@ -1,98 +1,52 @@
-## Phantom for Jekyll
+# hmsgit.github.io
 
-A minimalist, responsive portfolio theme for [Jekyll](http://jekyllrb.com/) with Bootstrap.
+This repository publishes [hmsgit.github.io](https://hmsgit.github.io). It holds no
+content of its own — the site lives in
+[hmsgit/singularity](https://github.com/hmsgit/singularity) (Astro), and the
+workflow here checks that repo out, builds it, and deploys the result to GitHub
+Pages.
 
-![preview](preview.jpg)
+## One-time setup
 
-[See it in action](http://jamigibbs.github.io/phantom/).
+**Settings → Pages → Source: GitHub Actions.** Without it the build succeeds but
+nothing gets published.
 
-## Fancy using it for your own site?
+## What triggers a deploy
 
-Here are some steps to get you started:
+| Trigger | When |
+| --- | --- |
+| `workflow_dispatch` | manually, from the Actions tab |
+| `push` | a commit lands on `master` here |
+| `schedule` | daily at 04:00 UTC, so source changes go live within a day |
+| `repository_dispatch` | immediately, if singularity signals (below) |
 
-1. Clone this repo and cd into the directory:
+## Deploying as soon as singularity changes
 
-  ```bash
-  git clone https://github.com/jamigibbs/phantom.git your-dir-name && cd your-dir-name
-  ```
+The daily rebuild is the no-setup default. For instant deploys, give singularity a
+way to poke this repo:
 
-2. Run:
-
-  ```bash
-  gem install bundler
-  bundle install
-  bundle exec jekyll serve
-  ```
-
-  You may need to append your commands with `sudo` if you're getting a permissions error.
-
-  _Don't have Jekyll yet? [Get `er installed then!](http://jekyllrb.com/docs/installation/)_
-
-3. Visit in your browser at:
-
-  `http://127.0.0.1:4000`
-
-## Launching with Github Pages :rocket:
-
-Jekyll + Github pages is a marriage made in heaven. You can [use your own custom domain name](https://help.github.com/articles/setting-up-a-custom-domain-with-github-pages/) or use the default Github url (ie. http://username.github.io/repository) and not bother messing around with DNS settings.
-
-## Theme Features
-
-### Navigation
-
-Navigation can be customized in `_config.yml` under the `nav_item` key. Default settings:
+1. Create a fine-grained personal access token with **Contents: read & write** on
+   `hmsgit/hmsgit.github.io`.
+2. Save it in the singularity repo as the secret `PAGES_DISPATCH_TOKEN`.
+3. Add this workflow to singularity as `.github/workflows/notify-pages.yml`:
 
 ```yaml
-nav_item:
-    - { url: '/', text: 'Home' }
-    - { url: '/about', text: 'About' }
+name: Notify pages
+on:
+  push:
+    branches: [master]
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${{ secrets.PAGES_DISPATCH_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/hmsgit/hmsgit.github.io/dispatches \
+            -d '{"event_type":"source-updated"}'
 ```
 
-Set the `nav_enable` variable to false in `_config.yml` to disable navigation.
-
-### Contact Form
-
-You can display a contact form within the modal window template. This template is already setup to use the [Formspree](https://formspree.io) email system. You'll just want to add your email address to the form in `/_includes/contact-modal.html`.
-
-Place the modal window template in any place you'd like the user to click for the contact form.
-The template will display a link to click for the contact form modal window:
-
-```liquid
-{% include contact.html %}
-{% include contact-modal.html %}
-```
-
-### Animation Effects
-
-Animations with CSS classes are baked into the theme. To animate a section or element, simply add the animation classes:
-
-```html
-<div id="about-me" class="wow fadeIn">
-  I'm the coolest!
-</div>
-```
-
-For a complete list of animations, see the [animation list](http://daneden.github.io/animate.css/).
-
-### Pagination
-
-By default, pagination on the home page will activate after 10 posts. You can change this within `_config.yml`. You can add the pagination to other layouts with:
-
-```liquid
-  {% for post in paginator.posts %}
-    {% include post-content.html %}
-  {% endfor %}
-
-  {% include pagination.html %}
-```
-
-Read more about the [pagination plugin](http://jekyllrb.com/docs/pagination/).
-
-## Credit
-
-* Bootstrap, http://getbootstrap.com/, (C) 2011 - 2016 Twitter, Inc., [MIT](https://github.com/twbs/bootstrap/blob/master/LICENSE)
-
-* Wow, https://github.com/matthieua/WOW, (C) 2014 - 2016 Matthieu Aussaguel
-, [GPL](https://github.com/matthieua/WOW#open-source-license)
-
-* Animate.css, https://github.com/daneden/animate.css, (C) 2016 Daniel Eden, [MIT](https://github.com/daneden/animate.css/blob/master/LICENSE)
+If singularity is a **private** repository, the checkout step in
+`deploy.yml` also needs a token with read access to it — add `token: ${{
+secrets.SOURCE_TOKEN }}` under the checkout's `with:`.
